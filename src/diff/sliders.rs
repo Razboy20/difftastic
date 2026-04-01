@@ -28,14 +28,17 @@
 //! This module fixes these cases. It identifies situations where we
 //! can change which item is marked as novel (e.g. either `B` in the
 //! example above) whilst still showing a valid, minimal diff.
+//!
+//! A similar problem exists with line-oriented diffs, see
+//! [diff-slider-tools](https://github.com/mhagger/diff-slider-tools)
+//! for a thorough discussion.
 
 use line_numbers::SingleLineSpan;
 
-use crate::{
-    diff::changes::{insert_deep_novel, insert_deep_unchanged, ChangeKind::*, ChangeMap},
-    parse::guess_language,
-    parse::syntax::Syntax::{self, *},
-};
+use crate::diff::changes::ChangeKind::*;
+use crate::diff::changes::{insert_deep_novel, insert_deep_unchanged, ChangeMap};
+use crate::parse::guess_language;
+use crate::parse::syntax::Syntax::{self, *};
 
 pub(crate) fn fix_all_sliders<'a>(
     language: guess_language::Language,
@@ -49,7 +52,7 @@ pub(crate) fn fix_all_sliders<'a>(
     fix_all_nested_sliders(language, nodes, change_map);
 }
 
-/// Should nester slider correction prefer the inner or outer
+/// Should nested slider correction prefer the inner or outer
 /// delimiter?
 fn prefer_outer_delimiter(language: guess_language::Language) -> bool {
     use crate::parse::guess_language::Language::*;
@@ -621,7 +624,7 @@ fn distance_between(prev: &Syntax, next: &Syntax) -> (u32, u32) {
     (0, 0)
 }
 
-impl<'a> Syntax<'a> {
+impl Syntax<'_> {
     fn first_line_span(&self) -> Option<SingleLineSpan> {
         match self {
             List {
@@ -675,11 +678,9 @@ mod tests {
     use typed_arena::Arena;
 
     use super::*;
-    use crate::{
-        parse::guess_language,
-        parse::tree_sitter_parser::{from_language, parse},
-        syntax::{init_all_info, AtomKind},
-    };
+    use crate::parse::guess_language;
+    use crate::parse::tree_sitter_parser::{from_language, parse};
+    use crate::syntax::{init_all_info, AtomKind};
 
     /// Test that we slide at the start if the unchanged node is
     /// closer than the trailing novel node.
@@ -704,9 +705,9 @@ mod tests {
         }];
 
         let lhs = [
-            Syntax::new_atom(&arena, line1a, "a", AtomKind::Comment),
-            Syntax::new_atom(&arena, line1b, "b", AtomKind::Comment),
-            Syntax::new_atom(&arena, line2, "a", AtomKind::Comment),
+            Syntax::new_atom(&arena, line1a, "a".to_owned(), AtomKind::Comment),
+            Syntax::new_atom(&arena, line1b, "b".to_owned(), AtomKind::Comment),
+            Syntax::new_atom(&arena, line2, "a".to_owned(), AtomKind::Comment),
         ];
 
         let pos = vec![SingleLineSpan {
@@ -714,7 +715,12 @@ mod tests {
             start_col: 1,
             end_col: 2,
         }];
-        let rhs = [Syntax::new_atom(&arena, pos, "a", AtomKind::Comment)];
+        let rhs = [Syntax::new_atom(
+            &arena,
+            pos,
+            "a".to_owned(),
+            AtomKind::Comment,
+        )];
 
         init_all_info(&lhs, &rhs);
 
@@ -753,9 +759,9 @@ mod tests {
         }];
 
         let lhs = [
-            Syntax::new_atom(&arena, line1, "a", AtomKind::Comment),
-            Syntax::new_atom(&arena, line2a, "b", AtomKind::Comment),
-            Syntax::new_atom(&arena, line2b, "a", AtomKind::Comment),
+            Syntax::new_atom(&arena, line1, "a".to_owned(), AtomKind::Comment),
+            Syntax::new_atom(&arena, line2a, "b".to_owned(), AtomKind::Comment),
+            Syntax::new_atom(&arena, line2b, "a".to_owned(), AtomKind::Comment),
         ];
 
         let pos = vec![SingleLineSpan {
@@ -763,7 +769,12 @@ mod tests {
             start_col: 1,
             end_col: 2,
         }];
-        let rhs = [Syntax::new_atom(&arena, pos, "a", AtomKind::Comment)];
+        let rhs = [Syntax::new_atom(
+            &arena,
+            pos,
+            "a".to_owned(),
+            AtomKind::Comment,
+        )];
 
         init_all_info(&lhs, &rhs);
 

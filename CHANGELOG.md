@@ -1,4 +1,270 @@
-## 0.57 (unreleased)
+## 0.69 (unreleased)
+
+### Parsing
+
+Improved string interpolation handling in Scala.
+
+## 0.68 (released 16th March 2026)
+
+### Git Support
+
+Fixed an issue where git with difftastic would terminate with `fatal:
+external diff died` when there was an unmerged path.
+
+### Parsing
+
+Updated Bash, C, Go, Lua, Nix, Perl, Python, Rust, Scala, Swift and
+YAML parsers.
+
+Fixed an issue with parsing raw string literals in Rust.
+
+### Build
+
+Difftastic now requires Rust 1.77 or later to build.
+
+Difftastic no longer uses jemalloc on any Windows builds. Previously
+jemalloc was only disabled for MSVC.
+
+### Command Line Interface
+
+Improved error reporting when invoked with an invalid number of
+arguments.
+
+### Display
+
+Fixed an issue with inline display where it didn't always respect the
+value of --context.
+
+Fixed an issue with side-by-side rendering when files contain tabs.
+
+## 0.67 (released 16 November 2025)
+
+### Parsing
+
+Added support for protocol buffer files. Updated Ada, Clojure, CMake, Dart,
+Devicetree, Elisp, Elm, Gleam, HCL, Newick, QML, R, Racket, SQL, Scheme, and
+Solidity parsers.
+
+Improved handling of variable names `$foo` in shell scripts.
+
+Improved detection of YAML files.
+
+### Diffing
+
+Improved subword highlighting for words with hyphens.
+
+### Display
+
+Difftastic is now smarter about calculating the display width for
+side-by-side diffs. Long lines that are not included in the output no
+longer affect display.
+
+Improved descriptions of changes to binary files.
+
+Fixed an issue (introduced after 0.65) where difftastic would not use
+the full width of the terminal on side-by-side diffs when files had
+more than 1,000 lines.
+
+## 0.66 (skipped)
+
+Due to an issue with the release process, 0.66 was abandoned in favour
+of doing a normal release with version 0.67.
+
+## 0.65 (released 23rd September 2025)
+
+### Build
+
+Increased the default page size of Jemalloc, so difftastic should work
+on systems with large page sizes (typically aarch64, i.e. Arm).
+
+difftastic now requires Rust 1.75 to build.
+
+### Parsing
+
+Updated Clojure, Common Lisp, Rust and Zig parsers. Improved parsing
+of Kotlin.
+
+Text encoding detection is now stricter, fixing more cases where
+binary files were treated as text.
+
+Added the `--override-binary` option to force files to be treated as
+binary rather than text.
+
+### Display
+
+When diffing binary files, the file sizes are now shown to help see
+big changes.
+
+## 0.64 (released 16th June 2025)
+
+### Parsing
+
+Updated to the latest tree-sitter parser for Erlang, F#, Gleam, Pascal
+and Swift.
+
+File detection is now stricter for UTF-8, and recognises more
+compression file types as binary (e.g. zstd or bzip2).
+
+Added support for Verilog and SystemVerilog.
+
+### Build
+
+CI on GitHub now uses Ubuntu 22.04 for Linux builds (previously Ubuntu
+20.04), so prebuilt binaries will require a newer glibc version to
+run.
+
+### Internal
+
+Difftastic has switched from MiMalloc to Jemalloc for allocation. This
+is modest performance regression (up to 20% longer runtime in
+testing). Jemalloc is currently easier to build (see issue #805) and
+has fewer pathological performance corner cases.
+
+## 0.63 (released 11th February 2025)
+
+### Diffing
+
+When diffing directories, difftastic now ignores the `.git` directory.
+
+### Display
+
+Fixed an issue where `--display=side-by-side-show-both` would not use
+a two-column display when one file was empty.
+
+### Command Line Interface
+
+Difftastic no longer accepts the `--missing-as-empty` argument. This
+argument has had no effect since 0.46.
+
+### Parsing
+
+File detection now supports Windows-1252 encoded text (an extension of
+ISO-8859-1), and is stricter about UTF-16 detection.
+
+Updated to the latest tree-sitter parser for Elixir, LaTeX, Make, Nix,
+Rust and YAML.
+
+### Build
+
+Releases now include prebuilt musl binaries.
+
+## 0.62 (released 20th December 2024)
+
+### Diffing
+
+Improved handling of multiline strings, which could cause a crash if
+they occurred at the end of the file. This was particularly noticeable
+with YAML.
+
+### Parsing
+
+Improved language detection when one argument is a named pipe.
+
+Updated to the latest tree-sitter parser for Bash, C, C++, C#, CSS,
+Go, Haskell, HTML, Java, JavaScript, JSON, Julia, Lua, Objective-C,
+OCaml, PHP, Python, Ruby, Scala, TOML, TypeScript and XML.
+
+### Syntax Highlighting
+
+Improved syntax highlighting, particularly for keywords.
+
+### Build
+
+difftastic now requires Rust 1.74.1 to build.
+
+Prebuilt packages for macOS on x86-64 are now built on macOS 13.
+
+## 0.61 (released 24th October 2024)
+
+**Recommended git configuration has changed! Please update your
+`~/.gitconfig` to [match the git
+instructions](https://difftastic.wilfred.me.uk/git.html), regardless
+of your difftastic version.**
+
+### Display
+
+Side-by-side display is now smarter on very wide terminals when the
+content is narrow.
+
+### Diffing
+
+Fixed a crash (introduced in 0.60) when the final line in a file does
+not have a trailing newline and occurs more than once in the file.
+
+### Build
+
+difftastic now requires Rust 1.66 to build.
+
+## 0.60 (released 1st August 2024)
+
+### Diffing
+
+Fixed a crash (introduced in 0.59) when the final changed hunk
+included the last line of the file.
+
+### Display
+
+Fixed an issue where files with no common content would show duplicate
+hunks.
+
+Fixed a performance issue when files had extremely long lines
+(e.g. 100,000+ characters).
+
+## 0.59 (released 20th July 2024)
+
+### Diffing
+
+Fixed crash on some textual files where a single change contained more than
+1,000 words.
+
+### Parsing
+
+Added support for device tree and F#.
+
+Difftastic now uses tree-sitter comment highlighting as a hint that
+nodes should be treated as atoms. This ensures comments are treated
+more consistently across languages. This fixes cases in Elm where
+comment differences were ignored, and may improve other languages too.
+
+## 0.58 (released 11th May 2024)
+
+### Parsing
+
+Difftastic now preserves tree-sitter parse tree structure on parse
+error nodes. This reverts the flattening behaviour introduced in
+0.38. Preserving structure tends to produce better diffs, although it
+increases the risk that difftastic will show fewer changes in the
+presence of parse errors.
+
+Since difftastic is now conservative with parse errors
+(DFT_PARSE_ERROR_LIMIT is 0 by default), this seems like a better
+tradeoff.
+
+Updated C, C++, CMake, CSS, Elm, Go, Lua and Python parsers.
+
+### Diffing
+
+`--strip-cr` now defaults to `on`, so comparing a file with CRLF
+endings with a file with unix line endings will not show spurious
+changes.
+
+### Documentation
+
+Difftastic now has a man page, see the `difft.1` file.
+
+### Performance
+
+Fixed a memory leak and improved performance in some cases.
+
+### Command Line Interface
+
+Fixed a crash when difftastic could not detect the terminal width,
+such as inside eshell.
+
+Difftastic now also considers $COLUMNS when detecting the terminal
+width.
+
+## 0.57 (released 1st April 2024)
 
 ### Parsing
 
@@ -6,6 +272,9 @@ Text file detection is now stricter, considering null bytes as a hint
 that files are binaries.
 
 ### Diffing
+
+Fixed an issue where hidden files (filename starting with `.`) were
+ignored when diffing directories.
 
 Scheme now uses the same slider heuristics as other lisps, preferring
 the outer delimiter.
@@ -132,7 +401,7 @@ types.
 ### Diffing
 
 Fixed an issue where adding or removing blank lines would be ignored
-by the textual diffing logic.
+by the line-oriented diffing logic.
 
 Directory diffing now respects `.gitignore` files.
 
@@ -353,8 +622,8 @@ UTF-16. Many files can be decoded as UTF-16 without decoding errors
 but produce nonsense results, so this heuristic seems to work better.
 
 Fixed an issue where difftastic would discard the last newline in a
-file before diffing. This was most noticeable when doing textual diffs
-and the last line had changed.
+file before diffing. This was most noticeable when doing line-oriented
+diffs and the last line had changed.
 
 ### Display
 
@@ -384,12 +653,12 @@ Added support for Newick and Racket.
 
 ### Diffing
 
-Difftastic now uses a textual diff on files that have any parse
+Difftastic now uses a line-oriented diff on files that have any parse
 errors. The parse error limit defaults to 0, but it is configurable
 with `DFT_PARSE_ERROR_LIMIT` or `--parse-error-limit`.
 
-Textual diffing now respects `--check-only`, consistent with syntactic
-diffing.
+Line-oriented diffing now respects `--check-only`, consistent with
+structural diffing.
 
 ### Display
 
@@ -444,13 +713,13 @@ Improved CSS parsing and HTML sublanguage parsing.
 
 Added an `--ignore-comments` option.
 
-Improved textual diffing performance, particularly when the two files
-have few lines in common.
+Improved line-oriented diffing performance, particularly when the two
+files have few lines in common.
 
 ### Display
 
-Fixed an issue with unwanted underlines with textual diffing when
-DFT_BYTE_LIMIT is reached.
+Fixed an issue with unwanted underlines with line-oriented diffing
+when DFT_BYTE_LIMIT is reached.
 
 Fixed a crash in inline display when the file ends with whitespace.
 
@@ -481,8 +750,8 @@ constituents.
 
 `--display=inline` now respects `--tab-width`.
 
-Fixed an issue with unwanted underlines with textual diffing when
-DFT_GRAPH_LIMIT is reached.
+Fixed an issue with unwanted underlines with line-oriented diffing
+when DFT_GRAPH_LIMIT is reached.
 
 Improved syntax highlighting for predefined types in TypeScript.
 
@@ -1082,9 +1351,9 @@ Fixed a crash when line wrapping produced an entirely blank line.
 
 ### Diffing
 
-Improved word diffing (in both comments and textual diffs) when source
-contains Unicode characters. Word splitting now uses the Unicode
-alphabetic property.
+Improved word diffing (in both comments and line-oriented diffs) when
+the source contains Unicode characters. Word splitting now uses the
+Unicode alphabetic property.
 
 Fixed a crash when comments contained multibyte Unicode characters.
 
@@ -1149,12 +1418,12 @@ Improved minor display issues when one file is longer than the other.
 If given binary files, difftastic will now report if the file contents
 are identical.
 
-Difftastic will now use a text diff for large files, rather than
-trying to use more memory than is available. This threshold is
+Difftastic will now use a line-oriented diff for large files, rather
+than trying to use more memory than is available. This threshold is
 configurable with `--node-limit` and `DFT_NODE_LIMIT`.
 
-Fixed a bug in the text diff logic where lines weren't shown if they
-did not have both word additions and word removals.
+Fixed a bug in the line-oriented diff logic where lines weren't shown
+if they did not have both word additions and word removals.
 
 ### Command Line Interface
 
@@ -1274,12 +1543,12 @@ Fixed a parsing performance regression introduced in 0.13.
 
 ### Diffing
 
-Text diffing now has a standalone implementation rather than reusing
-structural diff logic. This is signficantly faster and highlighted
-better.
+Line-oriented diffing now has a standalone implementation rather than
+reusing structural diff logic. This is significantly faster and
+highlighted better.
 
 Improved performance when diffing two identical files. This is common
-when diffing directorires.
+when diffing directories.
 
 ### Display
 

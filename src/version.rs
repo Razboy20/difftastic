@@ -15,24 +15,40 @@ pub(crate) struct VersionInfo {
 
 impl fmt::Display for VersionInfo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.version)?;
+        write!(f, "{}\n\n", self.version)?;
 
-        match (&self.commit_info, self.rustc_version) {
-            (Some(commit_info), Some(rustc_version)) => write!(
+        if let Some(commit_info) = &self.commit_info {
+            writeln!(
                 f,
-                " ({} {}, built with rustc {})",
-                commit_info.short_commit_hash, commit_info.commit_date, rustc_version
-            )?,
-            (Some(commit_info), None) => write!(
-                f,
-                " ({} {})",
+                "Revision:  {} {}",
                 commit_info.short_commit_hash, commit_info.commit_date
-            )?,
-            (None, Some(rustc_version)) => write!(f, " (built with rustc {})", rustc_version)?,
-            (None, None) => {}
+            )?;
+        }
+        if let Some(rustc_version) = self.rustc_version {
+            writeln!(f, "Toolchain: {}", rustc_version)?;
         }
 
-        Ok(())
+        // Users running difftastic in containers sometimes have
+        // issues with permissions reading from /tmp, which is where
+        // git writes temporary files. Display whether the environment
+        // looks like a container.
+        let container_env = if std::env::var("container").is_ok() {
+            " (probably Flatpak)"
+        } else if std::env::var("APPIMAGE").is_ok() {
+            " AppImage"
+        } else if std::env::var("SNAP").is_ok() {
+            " Snap"
+        } else {
+            ""
+        };
+
+        writeln!(
+            f,
+            "System:    {} {}{}",
+            std::env::consts::OS,
+            std::env::consts::ARCH,
+            container_env
+        )
     }
 }
 

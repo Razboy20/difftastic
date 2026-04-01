@@ -16,6 +16,10 @@ the hunk.
 **LHS**: Left-hand side. Difftastic compares two items, and LHS refers
 to the first item. See also 'RHS'.
 
+**Line-oriented**: A traditional diff that compares which lines have
+been added or removed, unlike difftastic. For example, GNU diff or the
+diffs displayed on GitHub.
+
 **List**: A list is an item in difftastic's syntax tree structure that
 has an open delimiter, children, and a close delimiter. It represents
 things like expressions and function definitions. See also 'atom'.
@@ -32,7 +36,7 @@ top-level definitions in the file being diffed.
 **Slider**: A diffing situation where there are multiple minimal diffs
 possible, due to adjacent content. It is possible to 'slide' to
 produce better results in this situation. See [the discussion in Tricky
-Cases](/tricky_cases.html#sliders-flat).
+Cases](./tricky_cases.html#sliders-flat).
 
 **Syntax node**: An item in difftastic's syntax tree structure. Either
 an atom or a list.

@@ -1,294 +1,327 @@
-sample_files/Session_before.kt sample_files/Session_after.kt
-80c53658ee849d38f397863803677a02  -
+sample_files/Session_1.kt sample_files/Session_2.kt
+1e5de641d7a8f1429fe1dca749f13ade  -
 
-sample_files/ada_before.adb sample_files/ada_after.adb
-626e22f4f256ae591ece3f280176b3f7  -
+sample_files/ada_1.adb sample_files/ada_2.adb
+2c5a7ca4fe0a9b837b3055cf17b6b8d2  -
 
-sample_files/added_line_before.txt sample_files/added_line_after.txt
-5996d2f9cc7c1e3acfdeafcf0f5e43c1  -
+sample_files/added_line_1.txt sample_files/added_line_2.txt
+8a1587e6b5fc53f2ec2ac665a5d00372  -
 
-sample_files/align_footer_before.txt sample_files/align_footer_after.txt
-202e1821f9214f74568578dbc12ca83e  -
+sample_files/align_footer_1.txt sample_files/align_footer_2.txt
+49b8e5156047150594abbab22c402efa  -
 
-sample_files/apex_before.cls sample_files/apex_after.cls
-fde5c2cb739fb8bb42a592f64190137e  -
+sample_files/all_changed_1.js sample_files/all_changed_2.js
+8b18e5155d4754e8e6d6319be6f58301  -
 
-sample_files/b2_math_before.h sample_files/b2_math_after.h
-8ce28404b7f7935a66bd13b14a4dbcb4  -
+sample_files/apex_1.cls sample_files/apex_2.cls
+8e477350907734ac4d5201752523dff3  -
 
-sample_files/bad_combine_before.rs sample_files/bad_combine_after.rs
-397c122ac48dd2f78c2ae7704083b5e2  -
+sample_files/b2_math_1.h sample_files/b2_math_2.h
+2d8f9619e0c39d04b1a6ecbe14696b38  -
 
-sample_files/change_outer_before.el sample_files/change_outer_after.el
-8ed3308b9eabd486bdbe9aa2e7dc9be6  -
+sample_files/bad_combine_1.rs sample_files/bad_combine_2.rs
+a6d674bd88d54f085c22c70c2d5a4c80  -
 
-sample_files/chinese_before.po sample_files/chinese_after.po
-097250024d46c75a159b8a8efe9a1e51  -
+sample_files/big_text_hunk_1.txt sample_files/big_text_hunk_2.txt
+fc26d41a5ff771670e04033b177973d2  -
 
-sample_files/clojure_before.clj sample_files/clojure_after.clj
-34a723cb5ec5a81f3ae5c01a64bca6c2  -
+sample_files/change_outer_1.el sample_files/change_outer_2.el
+1c5611ec618ce8f1ea8623057bffd544  -
 
-sample_files/comma_and_comment_before.js sample_files/comma_and_comment_after.js
-d25fc192d1737136a7ee3bc17d517cf9  -
+sample_files/chinese_1.po sample_files/chinese_2.po
+eac26d58f1266d339d60608656a6eb8b  -
 
-sample_files/comma_before.js sample_files/comma_after.js
-9b4b1cad1973205c4aaa96ef6d5704b0  -
+sample_files/clojure_1.clj sample_files/clojure_2.clj
+9b88515ca9daf5d3cf4de7c61915fc10  -
 
-sample_files/comments_before.rs sample_files/comments_after.rs
-44f0fad026ff9acf0efd7295492909a3  -
+sample_files/comma_1.js sample_files/comma_2.js
+dfd18ec953d29545380fa656e54ff70e  -
 
-sample_files/context_before.rs sample_files/context_after.rs
-4e1e12aa33624cf4ee2f5619c1975d08  -
+sample_files/comma_and_comment_1.js sample_files/comma_and_comment_2.js
+6f7d50d421502aa6a143502643d51ae7  -
 
-sample_files/contiguous_before.js sample_files/contiguous_after.js
-62b54fd60ab10e864b60f379477379c2  -
+sample_files/comments_1.rs sample_files/comments_2.rs
+d8c3c256de454bc23944cf1a4300c66e  -
 
-sample_files/css_before.css sample_files/css_after.css
-35e2d577f5b1aa2626e499124524af29  -
+sample_files/context_1.rs sample_files/context_2.rs
+9b84c492d07d125912de77002bcaad9a  -
 
-sample_files/dart_before.dart sample_files/dart_after.dart
-73dd776f2587bbaf2d29fbe20dd8de40  -
+sample_files/contiguous_1.js sample_files/contiguous_2.js
+7ac6081dee02e3529a88defca194bc00  -
 
-sample_files/elisp_before.el sample_files/elisp_after.el
-4342ed34fe5304644afe5b224f0fd83b  -
+sample_files/css_1.css sample_files/css_2.css
+43a2bbc8dc2f4b4733ecb5a888d10dfc  -
 
-sample_files/elisp_contiguous_before.el sample_files/elisp_contiguous_after.el
-f8745c21bac86205b36b04db1c0bad06  -
+sample_files/dart_1.dart sample_files/dart_2.dart
+2cacc19ded574d97416eed1a3da513e6  -
 
-sample_files/elm_before.elm sample_files/elm_after.elm
-21986c57b5eee4bbd248a927955338fe  -
+sample_files/devicetree_1.dts sample_files/devicetree_2.dts
+36a87e82032c54d0d1a630f895ea6f1b  -
 
-sample_files/elvish_before.elv sample_files/elvish_after.elv
-66aee6a75695ea5654a2de2faa18202e  -
+sample_files/elisp_1.el sample_files/elisp_2.el
+3e8c8abcb65a5141a2fb54bae4a9ca06  -
 
-sample_files/erlang_before.erl sample_files/erlang_after.erl
-c4a48cdd69bc3d0ef5e6bf2e5a8424f9  -
+sample_files/elisp_contiguous_1.el sample_files/elisp_contiguous_2.el
+f10afb2f1f60651b3dc384ea3ce8b1e4  -
 
-sample_files/hack_before.php sample_files/hack_after.php
-f4e6a08cf167ed376dac629bead4e54d  -
+sample_files/elixir_1.ex sample_files/elixir_2.ex
+5ab1a845f7cb3ca6db1fdef7bc4a042f  -
 
-sample_files/hare_before.ha sample_files/hare_after.ha
-7848f1b9689629ab5dc5e1a742c34d6b  -
+sample_files/elm_1.elm sample_files/elm_2.elm
+8a67269f2dd2e4913f885b3b6e6d6a07  -
 
-sample_files/haskell_before.hs sample_files/haskell_after.hs
-4cf36291cc7d9b72526063db0ebc5402  -
+sample_files/elvish_1.elv sample_files/elvish_2.elv
+93af1d46752d57db84011ca7482ae842  -
 
-sample_files/hcl_before.hcl sample_files/hcl_after.hcl
-52e271ea8ffbe500d6bc3c47d35df13a  -
+sample_files/erlang_1.erl sample_files/erlang_2.erl
+77c259baf4751716db4da1503088e742  -
 
-sample_files/hello_world_before.smali sample_files/hello_world_after.smali
-c2a686a9d70b8e54d49ef7fdf2f87fb7  -
+sample_files/f_sharp_1.fs sample_files/f_sharp_2.fs
+f6c90edd5c4fb81b793f3b7c9b367845  -
 
-sample_files/helpful-unit-test-before.el sample_files/helpful-unit-test-after.el
-f85460a4e60d77b4cae1a987a5af4c49  -
+sample_files/fortran_1.f90 sample_files/fortran_2.f90
+b5fae2c0a3e0755ca8182df1f728400b  -
 
-sample_files/helpful_before.el sample_files/helpful_after.el
-91ce9866aeb9c8e2f59836819d1a4e06  -
+sample_files/hack_1.php sample_files/hack_2.php
+c2bb0aa7d7b07d6ced79f6a5363e878b  -
 
-sample_files/html_before.html sample_files/html_after.html
-b5149551376defd7a0cda51aeaef420d  -
+sample_files/hare_1.ha sample_files/hare_2.ha
+e344b3fa7bc35fd4a0f3c7cecab39447  -
 
-sample_files/html_simple_before.html sample_files/html_simple_after.html
-915a46736d489be724b18c87b4ebf6b2  -
+sample_files/haskell_1.hs sample_files/haskell_2.hs
+3cace65f14319c339fcbd30e8e9ebdcc  -
 
-sample_files/huge_cpp_before.cpp sample_files/huge_cpp_after.cpp
-63b627d680fcdc87eac8c242661a28c5  -
+sample_files/hcl_1.hcl sample_files/hcl_2.hcl
+b4de7a8269018e05c0eba247d8097111  -
 
-sample_files/identical_before.scala sample_files/identical_after.scala
-da6c8d397a9d3992b494d761d082366c  -
+sample_files/hello_world_1.smali sample_files/hello_world_2.smali
+4a754c9c7d84d5fd4e3fbb16f060afbb  -
 
-sample_files/if_before.py sample_files/if_after.py
-4b25e3a7ae97516afa1064984754abe7  -
+sample_files/helpful_1.el sample_files/helpful_2.el
+a26c7b0e3758b387237d9932002211f8  -
 
-sample_files/insert_blank_before.txt sample_files/insert_blank_after.txt
-a985e0bd8d728d59f71621de35552bed  -
+sample_files/html_1.html sample_files/html_2.html
+a75207bff69134b601e677f4e3f9eb3b  -
 
-sample_files/janet_before.janet sample_files/janet_after.janet
-e02b243bbcce07d5b7cd68954bd5344d  -
+sample_files/html_simple_1.html sample_files/html_simple_2.html
+e31d600c98f9607c6f56c3967c000055  -
 
-sample_files/java_before.java sample_files/java_after.java
-81f88b1cd194c094bc8e23c05a5077ef  -
+sample_files/huge_cpp_1.cpp sample_files/huge_cpp_2.cpp
+3d02542d096751fcebd99a07745c8441  -
 
-sample_files/javascript_before.js sample_files/javascript_after.js
-008c9e0c6dae01c1cbd7e8211b33be35  -
+sample_files/hyphen_subwords_1.json sample_files/hyphen_subwords_2.json
+8315e8d21c7c8a22c48ff46c3931eda9  -
 
-sample_files/javascript_simple_before.js sample_files/javascript_simple_after.js
-b9f8e04d42f4c88b3514d31743e17297  -
+sample_files/identical_1.scala sample_files/identical_2.scala
+15c5a789e644348cb7e0de051ff4b63e  -
 
-sample_files/json_before.json sample_files/json_after.json
-79d34d1bbb670bb702f6ea75ff759fa5  -
+sample_files/if_1.py sample_files/if_2.py
+afcc7b60dd5c267ae183a496e0af511b  -
 
-sample_files/jsx_before.jsx sample_files/jsx_after.jsx
-908a1637b237cd7763948b7abeb95325  -
+sample_files/insert_blank_1.txt sample_files/insert_blank_2.txt
+a5fd75afcc99aa7b2b285f1f9ced8607  -
 
-sample_files/julia_before.jl sample_files/julia_after.jl
-0abbd2d5e040928f55fec2508f3001bd  -
+sample_files/janet_1.janet sample_files/janet_2.janet
+7dc0f1a3ce49f489fa4b64edefebb3c5  -
 
-sample_files/load_before.js sample_files/load_after.js
-7ead0c677e1ccc5639ea2a8199a8175e  -
+sample_files/java_1.java sample_files/java_2.java
+f4b15ddf3283e6c14d200efd06c0e85a  -
 
-sample_files/long_line_before.txt sample_files/long_line_after.txt
-850e2efa67152b79d5b5099f202d61bb  -
+sample_files/javascript_1.js sample_files/javascript_2.js
+549ed686b3ce0271a38c9087387afdd8  -
 
-sample_files/lua_before.lua sample_files/lua_after.lua
-9f5c85cd6806c724c84afa805da76bb7  -
+sample_files/javascript_simple_1.js sample_files/javascript_simple_2.js
+1a2fdfb7210a93c80a7ce7c0768920c3  -
 
-sample_files/makefile_before.mk sample_files/makefile_after.mk
-7eea0d919b71161c72a4ef496fff749d  -
+sample_files/json_1.json sample_files/json_2.json
+2be569c35a1e90edbbdea641db73f9e7  -
 
-sample_files/many_newlines_before.txt sample_files/many_newlines_after.txt
-afc8628f89076423d1453d8e3c84ac92  -
+sample_files/jsx_1.jsx sample_files/jsx_2.jsx
+89832bde34f9c54c99a1bfb0f68291a9  -
 
-sample_files/metadata_before.clj sample_files/metadata_after.clj
-4ac68277cb69d0648961b891e02d2a7b  -
+sample_files/julia_1.jl sample_files/julia_2.jl
+10ac32ea1bd1d48b20386f1deeca40a0  -
 
-sample_files/modules_before.ml sample_files/modules_after.ml
-bbaf96c9185aeee13a76aaba6afc93dc  -
+sample_files/load_1.js sample_files/load_2.js
+8d6d58c44e3c24488fcb4f7f6ce60746  -
 
-sample_files/multibyte_before.py sample_files/multibyte_after.py
-b4c7a2f4b674807a2c96e6829af43a27  -
+sample_files/long_line_1.txt sample_files/long_line_2.txt
+e8b5cc4b04030c79150aa70aaaa364b1  -
 
-sample_files/multiline_string_before.ml sample_files/multiline_string_after.ml
-37c4b5c42a98ad43a5ff2202dd8d897a  -
+sample_files/lua_1.lua sample_files/lua_2.lua
+11693bb34168541f2ac9f4154d246038  -
 
-sample_files/nest_before.rs sample_files/nest_after.rs
-8b803688ec64307c46d19bfaead5da74  -
+sample_files/makefile_1.mk sample_files/makefile_2.mk
+87e3b196d26ca6de861e546ee582d929  -
 
-sample_files/nested_slider_before.el sample_files/nested_slider_after.el
-61f52bd237b8a2a69071113bdbf7b55f  -
+sample_files/many_newlines_1.txt sample_files/many_newlines_2.txt
+52ca05855e520876479e6f608c5e7831  -
 
-sample_files/nested_slider_before.rs sample_files/nested_slider_after.rs
-cb15e648e6b09b6a9a2de4e1624ec6bd  -
+sample_files/metadata_1.clj sample_files/metadata_2.clj
+8762c3de7cdb95eb320d14c1c5440e37  -
 
-sample_files/nesting_before.el sample_files/nesting_after.el
-a1d520d7a425c9eed529b8b108eaee3e  -
+sample_files/modules_1.ml sample_files/modules_2.ml
+07e1872e32f8c11e4c3bb7ae3b3fe22f  -
 
-sample_files/newick_before.nwk sample_files/newick_after.nwk
-0f7bdff87a79f997b850e67d38a1c910  -
+sample_files/multibyte_1.py sample_files/multibyte_2.py
+eb1eef8be0f08b07ad79bd8ca328e2e5  -
 
-sample_files/nix_before.nix sample_files/nix_after.nix
-e00b95a4cf3fa3edf994155d8656063f  -
+sample_files/multiline_string_1.ml sample_files/multiline_string_2.ml
+3bfaea34db8a65d370e19b2e902d7cef  -
 
-sample_files/nullable_before.kt sample_files/nullable_after.kt
-66da628a2c20e18059b8669aaa14a163  -
+sample_files/multiline_string_eof_1.yml sample_files/multiline_string_eof_2.yml
+4d80f5907b7f360999ec51a70818fd97  -
 
-sample_files/objc_header_before.h sample_files/objc_header_after.h
-f65feb21b25bb7f2ba31ee8f49977193  -
+sample_files/nest_1.rs sample_files/nest_2.rs
+9d808755cff9af64cdc861bbef966cb4  -
 
-sample_files/objc_module_before.m sample_files/objc_module_after.m
-faf4f280485b78d2c74c73292a405708  -
+sample_files/nested_slider_1.el sample_files/nested_slider_2.el
+2a4e41f16b7ce9cb6692ef72754b9076  -
 
-sample_files/ocaml_before.ml sample_files/ocaml_after.ml
-2113c6c7959b8099f678d13953f7f44a  -
+sample_files/nested_slider_1.rs sample_files/nested_slider_2.rs
+342df46db959e8c90925ff4400c0fa63  -
 
-sample_files/outer_delimiter_before.el sample_files/outer_delimiter_after.el
-80a33b89c8105936fb53e0aba99fe016  -
+sample_files/nesting_1.el sample_files/nesting_2.el
+bbbb35cea6d1de31ff40db1f51ebf9c0  -
 
-sample_files/pascal_before.pascal sample_files/pascal_after.pascal
-ae0ae2a4e79f68cc78d476b27175fb8a  -
+sample_files/newick_1.nwk sample_files/newick_2.nwk
+e3e7336d993c7ac8c3140d64f057c248  -
 
-sample_files/perl_before.pl sample_files/perl_after.pl
-29019d23a5a5381397db0cfd42934946  -
+sample_files/nix_1.nix sample_files/nix_2.nix
+5f591ced7633a07f13cdda9766110715  -
 
-sample_files/prefer_outer_before.el sample_files/prefer_outer_after.el
-118fbbfa4a320ab40a79a59fa3b42767  -
+sample_files/nullable_1.kt sample_files/nullable_2.kt
+382063175940a489c581e24209399a7a  -
 
-sample_files/preprocesor_before.h sample_files/preprocesor_after.h
-689feef6aa36acbf2823779651a3bef7  -
+sample_files/objc_header_1.h sample_files/objc_header_2.h
+42a55ca60ffcbdfbe22884f9eee38468  -
 
-sample_files/qml_before.qml sample_files/qml_after.qml
-d1e32b72544861bae209baaa762f5235  -
+sample_files/objc_module_1.m sample_files/objc_module_2.m
+5c63beac1ce04ff870096e9352ef7c84  -
 
-sample_files/r_before.R sample_files/r_after.R
-1fa3b1843db94753a6b118535d7df995  -
+sample_files/ocaml_1.ml sample_files/ocaml_2.ml
+e99bb9f1f789bce0e9a1d4e5205b8139  -
 
-sample_files/racket_before.rkt sample_files/racket_after.rkt
-7384e9c384cdaa86ff40e4106e9e6ebd  -
+sample_files/outer_delimiter_1.el sample_files/outer_delimiter_2.el
+971c3ddebfae222ded24f7a97ec7b5d7  -
 
-sample_files/ruby_before.rb sample_files/ruby_after.rb
-e690af6874c954b271ef7ea8eb1d8af1  -
+sample_files/pascal_1.pascal sample_files/pascal_2.pascal
+de04f7fdb7af7bd70ca62f1868504f11  -
 
-sample_files/scala_before.scala sample_files/scala_after.scala
-8b2d6102b120d4a0de790c33409eedc3  -
+sample_files/perl_1.pl sample_files/perl_2.pl
+2cd2638b2b6d07248911f1f2e5ad1b25  -
 
-sample_files/scheme_before.scm sample_files/scheme_after.scm
-d00fcfe46aca3e2877bda566f1a3908b  -
+sample_files/prefer_outer_1.el sample_files/prefer_outer_2.el
+991038c9988cccc2c824652e33f772a2  -
 
-sample_files/simple_before.js sample_files/simple_after.js
-c9c5d1c61b7e8a953a361343bcd13c95  -
+sample_files/preprocessor_1.h sample_files/preprocessor_2.h
+d94f452bbf7cb3accc8d538fdd7ab5e4  -
 
-sample_files/simple_before.scss sample_files/simple_after.scss
-276a637404ace5617aadd09751cc0b07  -
+sample_files/qml_1.qml sample_files/qml_2.qml
+ec69003436e7780633b6224861c3cccf  -
 
-sample_files/simple_before.txt sample_files/simple_after.txt
-8b88ed3d752ca7ae72ed2a44e3cfc9df  -
+sample_files/r_1.R sample_files/r_2.R
+3c3f47ddb1e05732e8d9f3bd78cf5f7b  -
 
-sample_files/slider_at_end_before.json sample_files/slider_at_end_after.json
-51ded63239198014e35064ad79b957ab  -
+sample_files/racket_1.rkt sample_files/racket_2.rkt
+4debb7e7af49678aa19726acb5c55d7d  -
 
-sample_files/slider_before.rs sample_files/slider_after.rs
-b71d929c4b20c9771f0e0115012bbb0c  -
+sample_files/repeated_line_no_eol_1.txt sample_files/repeated_line_no_eol_2.txt
+b63c743f2133480de3ba42ecdec5eb93  -
 
-sample_files/slow_before.rs sample_files/slow_after.rs
-34ef9f4f02e01f2450b17c3105da22f6  -
+sample_files/ruby_1.rb sample_files/ruby_2.rb
+a0a7121421e3d57acadc08519275dcce  -
 
-sample_files/small_before.js sample_files/small_after.js
-68b801018168d9773dce32a2ac51a5b9  -
+sample_files/scala_1.scala sample_files/scala_2.scala
+2304bea82a6dae573964afdaeb47f845  -
 
-sample_files/string_subwords_before.el sample_files/string_subwords_after.el
-30aefbabda04615a531fe5b25ba1fa3e  -
+sample_files/scheme_1.scm sample_files/scheme_2.scm
+53c43d0dd0aea0f3e49385cc6d520963  -
 
-sample_files/strings_before.el sample_files/strings_after.el
-cca854a0ba20bb5691d46706e7f62d50  -
+sample_files/simple_1.js sample_files/simple_2.js
+f73ae56c0467bac101bb5f7a435f89f3  -
 
-sample_files/swift_before.swift sample_files/swift_after.swift
-c5a52d09c9078236765696f436ea7661  -
+sample_files/simple_1.scss sample_files/simple_2.scss
+8479280a4782aabf42acf4bb7d3668c5  -
 
-sample_files/syntax_error_before.js sample_files/syntax_error_after.js
-857cd151569443f5698939f97100e82e  -
+sample_files/simple_1.txt sample_files/simple_2.txt
+b0a13567bfdd36c854d9d2f537c704de  -
 
-sample_files/tab_before.c sample_files/tab_after.c
-7e4345e584d440a136f90becb0ef45bc  -
+sample_files/slider_1.rs sample_files/slider_2.rs
+094b0ef7fc4a565f993ffb077192edb4  -
 
-sample_files/tab_before.txt sample_files/tab_after.txt
-c7fcee21dd5ebd251e2cf4cd7d4446d2  -
+sample_files/slider_at_end_1.json sample_files/slider_at_end_2.json
+6c994cd99226f6584f74f531bb27d54f  -
 
-sample_files/tailwind_before.css sample_files/tailwind_after.css
-db01dde1e8455a144e5bf0511273f674  -
+sample_files/slow_1.rs sample_files/slow_2.rs
+302a9e9ae2af1ecc800d906ea67c74dd  -
 
-sample_files/text_before.txt sample_files/text_after.txt
-5fa6a472ccdeda0142eda3edcaeaa189  -
+sample_files/small_1.js sample_files/small_2.js
+86b1132b6c17fcc2cbec65b1c248baa9  -
 
-sample_files/todomvc_before.gleam sample_files/todomvc_after.gleam
-87aec5b4eb38e5c3f9c84368d28185d2  -
+sample_files/sql_1.sql sample_files/sql_2.sql
+ee54ee3f974aa54c8bdfc2b9075824f2  -
 
-sample_files/toml_before.toml sample_files/toml_after.toml
-34fbe2ec9ff514cd53edfe8d961d5093  -
+sample_files/string_subwords_1.el sample_files/string_subwords_2.el
+5c72eae6a018e26189868bcc28747c72  -
 
-sample_files/trailling_newline_before.yaml sample_files/trailling_newline_after.yaml
-6c2b9be2f28bac9d242f5145e4732c43  -
+sample_files/strings_1.el sample_files/strings_2.el
+4d39b32b53a056e1e770b8e5ab04790c  -
 
-sample_files/typescript_before.ts sample_files/typescript_after.ts
-27bc9e394d8119c7dd208a9d7985681e  -
+sample_files/swift_1.swift sample_files/swift_2.swift
+3a90686a3e172ae19a5fd7cef2f1b944  -
 
-sample_files/typing_before.ml sample_files/typing_after.ml
-709c41b6c1a00c27f67cd39c823c9891  -
+sample_files/syntax_error_1.js sample_files/syntax_error_2.js
+ce571e3438427e83f11a4f4264e1ae30  -
 
-sample_files/utf16_before.py sample_files/utf16_after.py
-bbf22d2c5003b638c0f8d08f21bbbb66  -
+sample_files/tab_1.c sample_files/tab_2.c
+fd896b8e53b183f0d1d5cfeb6a1dfab4  -
 
-sample_files/vhdl_before.vhd sample_files/vhdl_after.vhd
-eb987aa621cfa733bb4fcd52b255fbbf  -
+sample_files/tab_1.txt sample_files/tab_2.txt
+10e9a853917dc9d92d2867e3453269b2  -
 
-sample_files/whitespace_before.tsx sample_files/whitespace_after.tsx
-5b989281ee27b63d6fb26474e3d49f25  -
+sample_files/tailwind_1.css sample_files/tailwind_2.css
+9fdb506f97542d0edce0b14e99116617  -
 
-sample_files/xml_before.xml sample_files/xml_after.xml
-56cae800a4fb612ac5c1e0b5cb9c43b8  -
+sample_files/text_1.txt sample_files/text_2.txt
+ceb707a51501ca63ade198e7ebf92659  -
 
-sample_files/yaml_before.yaml sample_files/yaml_after.yaml
-9a94455c22d827576c73d8a8238dd55d  -
+sample_files/todomvc_1.gleam sample_files/todomvc_2.gleam
+725bb793f219e13cee199f18ffaed872  -
 
-sample_files/zig_before.zig sample_files/zig_after.zig
-4753ca757c03b1296976ff71e220c62b  -
+sample_files/toml_1.toml sample_files/toml_2.toml
+e1002ceba14d973fcc8abc23619e65b0  -
+
+sample_files/trailling_newline_1.yaml sample_files/trailling_newline_2.yaml
+763e6f9720a1f4e448d547c361f22c68  -
+
+sample_files/typescript_1.ts sample_files/typescript_2.ts
+e15ceae53da7cfb308960f8c3f30b891  -
+
+sample_files/typing_1.ml sample_files/typing_2.ml
+ae41c3f5aa1ba13c2a424d3afa7ece6c  -
+
+sample_files/utf16_1.py sample_files/utf16_2.py
+bd9a1d79fd78185c94ce89ea7d4ac581  -
+
+sample_files/verilog_1.sv sample_files/verilog_2.sv
+0fbb9bd8ff99b8ee852741860d2c25d0  -
+
+sample_files/vhdl_1.vhd sample_files/vhdl_2.vhd
+c20f2f2b351f0de01b784f32e242b802  -
+
+sample_files/whitespace_1.tsx sample_files/whitespace_2.tsx
+789689b170b80ef280a322b3a6c7363b  -
+
+sample_files/windows1251_1.txt sample_files/windows1251_2.txt
+3f648c2b6fc626022e3e591fbfd7ec81  -
+
+sample_files/xml_1.xml sample_files/xml_2.xml
+38600945878fdea4b06c5da026e1fb78  -
+
+sample_files/yaml_1.yaml sample_files/yaml_2.yaml
+3a4a35bf75297de64796eafb1feb4f97  -
+
+sample_files/zig_1.zig sample_files/zig_2.zig
+ee5a604e604d310066deeff30e28f9d7  -
 

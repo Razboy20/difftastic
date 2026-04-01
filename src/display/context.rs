@@ -1,15 +1,11 @@
 //! Calculate which nearby lines should also be displayed.
 
 use std::cmp::Ordering;
-use std::collections::HashSet;
 
 use line_numbers::LineNumber;
-use rustc_hash::FxHashSet;
 
-use crate::{
-    hash::DftHashMap,
-    parse::syntax::{zip_repeat_shorter, MatchKind, MatchedPos},
-};
+use crate::hash::{DftHashMap, DftHashSet};
+use crate::parse::syntax::{zip_repeat_shorter, MatchKind, MatchedPos};
 
 pub(crate) fn all_matched_lines_filled(
     lhs_mps: &[MatchedPos],
@@ -29,8 +25,9 @@ pub(crate) fn all_matched_lines_filled(
 /// Extend `matched_lines` to include the leading and trailing lines
 /// in the file.
 ///
-/// If the leading or trailing lines are blank, we won't have any
-/// MatchedPos values corresponding with those lines.
+/// This is useful when the file contains blank lines at the beginning
+/// or end. Those lines won't have MatchedPos values associated with
+/// them, but we still want to match them up.
 fn add_ends(
     matched_lines: &[(Option<LineNumber>, Option<LineNumber>)],
     lhs_lines: &[&str],
@@ -124,7 +121,7 @@ fn all_matched_lines(
 }
 
 fn all_lines(mps: &[MatchedPos]) -> Vec<LineNumber> {
-    let mut lines = FxHashSet::default();
+    let mut lines = DftHashSet::default();
     for mp in mps {
         lines.insert(mp.pos.line);
     }
@@ -143,7 +140,7 @@ fn matched_lines_from_unchanged(
     for mp in mps {
         let opposite_line = match &mp.kind {
             MatchKind::UnchangedToken { opposite_pos, .. }
-            | MatchKind::NovelLinePart { opposite_pos, .. } => {
+            | MatchKind::UnchangedPartOfNovelItem { opposite_pos, .. } => {
                 if let Some(highest_opposite_side) = highest_opposite_line {
                     opposite_pos
                         .iter()
@@ -329,8 +326,8 @@ fn match_preceding_blanks(
 
 pub(crate) fn opposite_positions(
     mps: &[MatchedPos],
-) -> DftHashMap<LineNumber, HashSet<LineNumber>> {
-    let mut res: DftHashMap<LineNumber, HashSet<LineNumber>> = DftHashMap::default();
+) -> DftHashMap<LineNumber, DftHashSet<LineNumber>> {
+    let mut res: DftHashMap<LineNumber, DftHashSet<LineNumber>> = DftHashMap::default();
 
     for mp in mps {
         match &mp.kind {
@@ -340,16 +337,18 @@ pub(crate) fn opposite_positions(
                 ..
             } => {
                 for (self_span, opposite_span) in zip_repeat_shorter(self_pos, opposite_pos) {
-                    let opposite_lines = res.entry(self_span.line).or_insert_with(HashSet::new);
+                    let opposite_lines = res
+                        .entry(self_span.line)
+                        .or_insert_with(DftHashSet::default);
                     opposite_lines.insert(opposite_span.line);
                 }
             }
-            MatchKind::NovelLinePart {
+            MatchKind::UnchangedPartOfNovelItem {
                 opposite_pos,
                 self_pos,
                 ..
             } => {
-                let opposite_lines = res.entry(self_pos.line).or_insert_with(HashSet::new);
+                let opposite_lines = res.entry(self_pos.line).or_insert_with(DftHashSet::default);
                 for opposite_span in opposite_pos {
                     opposite_lines.insert(opposite_span.line);
                 }
@@ -378,7 +377,7 @@ pub(crate) fn opposite_positions(
 /// ```
 fn before_with_opposites(
     before_lines: &[LineNumber],
-    opposite_lines: &DftHashMap<LineNumber, HashSet<LineNumber>>,
+    opposite_lines: &DftHashMap<LineNumber, DftHashSet<LineNumber>>,
 ) -> Vec<(Option<LineNumber>, Option<LineNumber>)> {
     let mut lines = before_lines.to_vec();
     lines.reverse();
@@ -474,7 +473,7 @@ pub(crate) fn flip_tuples<Tx: Copy, Ty: Copy>(items: &[(Tx, Ty)]) -> Vec<(Ty, Tx
 /// 122    91 (closest match)
 fn after_with_opposites(
     after_lines: &[LineNumber],
-    opposite_lines: &DftHashMap<LineNumber, HashSet<LineNumber>>,
+    opposite_lines: &DftHashMap<LineNumber, DftHashSet<LineNumber>>,
     prev_max_opposite: Option<LineNumber>,
     max_opposite: LineNumber,
 ) -> Vec<(Option<LineNumber>, Option<LineNumber>)> {
@@ -517,8 +516,8 @@ fn after_with_opposites(
 
 pub(crate) fn calculate_before_context(
     lines: &[(Option<LineNumber>, Option<LineNumber>)],
-    opposite_to_lhs: &DftHashMap<LineNumber, HashSet<LineNumber>>,
-    opposite_to_rhs: &DftHashMap<LineNumber, HashSet<LineNumber>>,
+    opposite_to_lhs: &DftHashMap<LineNumber, DftHashSet<LineNumber>>,
+    opposite_to_rhs: &DftHashMap<LineNumber, DftHashSet<LineNumber>>,
     num_context_lines: usize,
 ) -> Vec<(Option<LineNumber>, Option<LineNumber>)> {
     match lines.first() {
@@ -539,8 +538,8 @@ pub(crate) fn calculate_before_context(
 
 pub(crate) fn calculate_after_context(
     lines: &[(Option<LineNumber>, Option<LineNumber>)],
-    opposite_to_lhs: &DftHashMap<LineNumber, HashSet<LineNumber>>,
-    opposite_to_rhs: &DftHashMap<LineNumber, HashSet<LineNumber>>,
+    opposite_to_lhs: &DftHashMap<LineNumber, DftHashSet<LineNumber>>,
+    opposite_to_rhs: &DftHashMap<LineNumber, DftHashSet<LineNumber>>,
     max_lhs_src_line: LineNumber,
     max_rhs_src_line: LineNumber,
     num_context_lines: usize,
@@ -589,8 +588,8 @@ pub(crate) fn calculate_after_context(
 
 pub(crate) fn add_context(
     lines: &[(Option<LineNumber>, Option<LineNumber>)],
-    opposite_to_lhs: &DftHashMap<LineNumber, HashSet<LineNumber>>,
-    opposite_to_rhs: &DftHashMap<LineNumber, HashSet<LineNumber>>,
+    opposite_to_lhs: &DftHashMap<LineNumber, DftHashSet<LineNumber>>,
+    opposite_to_rhs: &DftHashMap<LineNumber, DftHashSet<LineNumber>>,
     max_lhs_src_line: LineNumber,
     max_rhs_src_line: LineNumber,
     num_context_lines: usize,
@@ -743,10 +742,10 @@ mod tests {
         let lines = vec![(Some(1.into()), Some(1.into()))];
 
         let mut opposite_to_lhs = DftHashMap::default();
-        opposite_to_lhs.insert(0.into(), HashSet::from_iter([0.into()]));
+        opposite_to_lhs.insert(0.into(), DftHashSet::from_iter([0.into()]));
 
         let mut opposite_to_rhs = DftHashMap::default();
-        opposite_to_rhs.insert(0.into(), HashSet::from_iter([0.into()]));
+        opposite_to_rhs.insert(0.into(), DftHashSet::from_iter([0.into()]));
 
         let res = calculate_before_context(
             &lines,
@@ -837,7 +836,7 @@ mod tests {
     fn test_all_lines() {
         let mps = [
             MatchedPos {
-                kind: MatchKind::NovelLinePart {
+                kind: MatchKind::UnchangedPartOfNovelItem {
                     highlight: TokenKind::Delimiter,
                     self_pos: SingleLineSpan {
                         line: 0.into(),

@@ -70,7 +70,7 @@ impl Theme {
             MatchKind::UnchangedToken { highlight, .. } => ("unchanged", highlight),
             MatchKind::Ignored { highlight } => ("ignored", highlight),
             MatchKind::Novel { highlight } => ("novel", highlight),
-            MatchKind::NovelLinePart { highlight, .. } => ("novel_line_part", highlight),
+            MatchKind::UnchangedPartOfNovelItem { highlight, .. } => ("novel_line_part", highlight),
             MatchKind::NovelWord { highlight } => ("novel_word", highlight),
         };
 
@@ -103,7 +103,7 @@ impl Theme {
         // fallback to novel if no more specific status is available
         if matches!(
             kind,
-            MatchKind::Novel { .. } | MatchKind::NovelLinePart { .. } | MatchKind::NovelWord { .. }
+            MatchKind::Novel { .. } | MatchKind::UnchangedPartOfNovelItem { .. } | MatchKind::NovelWord { .. }
         ) {
             if let Some(full_style) = self
                 .styles

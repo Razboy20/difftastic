@@ -167,6 +167,54 @@ language-agnostic way is difficult, so difftastic has a small list of
 punctuation characters that always get lower priority than other
 atoms.
 
+## Insignificant Punctuation
+
+In some cases, reformatting code can change the trailing punctuation
+without changing the meaning of the code. We don't want to show a diff
+in this case.
+
+```
+# Before
+foo(x, y)
+
+# After (semantically identical)
+foo(
+  x,
+  y,
+)
+```
+
+This is language-specific. For example, a trailing comma can change the meaning
+of code in Python.
+
+```
+# Before (the value 1)
+(1)
+
+# After (a tuple)
+(1,)
+```
+
+Desired result: <code>(1<span style="background-color: PaleGreen; color: #000">,</span>)</code>
+
+However, we can't simply discard this punctuation before diffing.
+
+```
+# Before
+[2,]
+
+# After
+[2,3,]
+```
+
+Possible result: <code>[2<span style="background-color: PaleGreen; color: #000">,3</span>,]</code>
+
+Desired result: <code>[2,<span style="background-color: PaleGreen; color: #000">3,</span>]</code>
+
+If the diffing logic effectively sees `[2]` and `[2,3]` because we've
+discarded the punctuation, we don't get the desired result here.
+
+
 ## Sliders (Flat)
 
 Sliders are a common problem in text based diffs, where lines are
@@ -355,7 +403,7 @@ still want to know when whitespace changes inside strings. `" "` and
 // Before
 foo("looooong", "also looooong");
 
-// Before
+// After
 foo(
   "looooong",
   "novel",
@@ -370,6 +418,39 @@ the most common.
 Syntactic diffing can ignore whitespace changes, but it has to assume
 punctuation is meaningful. This can lead to punctuation changes being
 highlighted, which may be quite far from the relevant content change.
+
+## Unordered Data Types
+
+```
+// Before
+set(1, 2)
+
+// After
+set(2, 1)
+```
+
+Users may expect difftastic to find no changes here. This is difficult
+for several reasons.
+
+For programming languages, side effects might make the order
+relevant. `set(foo(), bar())` might behave differently to `set(bar(),
+foo())`.
+
+For configuration languages like JSON or YAML, some parser
+implementations do actually expose ordering information
+(e.g. `object_pairs_hook=OrderedDict` in Python, or serde_json's
+`preserve_order` feature in Rust).
+
+To make matters worse, unordered tree diffing is NP-hard.
+
+> For the unordered case, it turns out that all of the problems in
+> general are NP-hard. Indeed, the tree edit distance and alignment
+> distance problems are even MAX SNP-hard.
+>
+> -- [A survey on tree edit distance and related problems](https://doi.org/10.1016/j.tcs.2004.12.030)
+
+**Difftastic**: Difftastic considers ordering to be meaningful
+everywhere, so it will always report ordering changes.
 
 ## Novel Blank Lines
 
@@ -432,12 +513,12 @@ There's no guarantee that the input we're given is valid syntax. Even
 if the code is valid, it might use syntax that isn't supported by the
 parser.
 
-**Difftastic**: Difftastic will fall back to a text-based diff if any
-parse errors occur, to avoid diffing incomplete syntax trees. When
+**Difftastic**: Difftastic will fall back to a line-oriented diff if
+any parse errors occur, to avoid diffing incomplete syntax trees. When
 this occurs, the file header reports the error count.
 
 ```
-$ difft sample_files/syntax_error_before.js sample_files/syntax_error_after.js
+$ difft sample_files/syntax_error_1.js sample_files/syntax_error_2.js
 sample_files/syntax_error_after.js --- Text (2 errors, exceeded DFT_PARSE_ERROR_LIMIT)
 ...
 ```

@@ -8,14 +8,6 @@ pub(crate) fn format_line_num(line_num: LineNumber) -> String {
     format!("{} ", line_num.display())
 }
 
-/// A position in a single line of a string.
-#[derive(Debug, PartialEq, Clone, Copy)]
-struct LinePosition {
-    /// Both zero-indexed.
-    pub(crate) line: LineNumber,
-    column: usize,
-}
-
 /// Return the length of `s` in bytes.
 ///
 /// This is a trivial wrapper to make it clear when we want bytes not
@@ -38,6 +30,21 @@ impl<S: AsRef<str>> MaxLine for S {
             .sub(1) // Sub 1 to make zero-indexed LineNumber
             .into()
     }
+}
+
+/// Split `s` on \n or \r\n. Always returns a non-empty vec. Each line
+/// in the vec does not include the trailing newline.
+///
+/// This differs from `str::lines`, which considers `""` to be zero
+/// lines and `"foo\n"` to be one line.
+pub(crate) fn split_on_newlines(s: &str) -> impl Iterator<Item = &str> {
+    s.split('\n').map(|l| {
+        if let Some(l) = l.strip_suffix('\r') {
+            l
+        } else {
+            l
+        }
+    })
 }
 
 pub(crate) fn is_all_whitespace(s: &str) -> bool {
@@ -75,7 +82,41 @@ mod tests {
     }
 
     #[test]
-    fn test_is_all_whiteapce() {
+    fn test_split_line_empty() {
+        assert_eq!(split_on_newlines("").collect::<Vec<_>>(), vec![""]);
+    }
+
+    #[test]
+    fn test_split_line_single() {
+        assert_eq!(split_on_newlines("foo").collect::<Vec<_>>(), vec!["foo"]);
+    }
+
+    #[test]
+    fn test_split_line_with_newline() {
+        assert_eq!(
+            split_on_newlines("foo\nbar").collect::<Vec<_>>(),
+            vec!["foo", "bar"]
+        );
+    }
+
+    #[test]
+    fn test_split_line_with_crlf() {
+        assert_eq!(
+            split_on_newlines("foo\r\nbar").collect::<Vec<_>>(),
+            vec!["foo", "bar"]
+        );
+    }
+
+    #[test]
+    fn test_split_line_with_trailing_newline() {
+        assert_eq!(
+            split_on_newlines("foo\nbar\n").collect::<Vec<_>>(),
+            vec!["foo", "bar", ""]
+        );
+    }
+
+    #[test]
+    fn test_is_all_whitespace() {
         assert!(is_all_whitespace(" \n\t"));
     }
 }

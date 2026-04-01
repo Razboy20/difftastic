@@ -2,26 +2,26 @@
 
 #![allow(clippy::mutable_key_type)] // Hash for Syntax doesn't use mutable fields.
 
-use std::{cell::Cell, env, fmt, hash::Hash, num::NonZeroU32};
+use std::cell::Cell;
+use std::hash::Hash;
+use std::num::NonZeroU32;
+use std::{env, fmt};
 
-use line_numbers::LinePositions;
-use line_numbers::SingleLineSpan;
+use line_numbers::{LinePositions, SingleLineSpan};
 use typed_arena::Arena;
 
 use self::Syntax::*;
+use crate::diff::changes::ChangeKind::*;
+use crate::diff::changes::{ChangeKind, ChangeMap};
+use crate::diff::lcs_diff;
+use crate::hash::DftHashMap;
+use crate::lines::{is_all_whitespace, split_on_newlines};
 use crate::words::split_words_and_numbers;
-use crate::{
-    diff::changes::ChangeKind,
-    diff::changes::{ChangeKind::*, ChangeMap},
-    diff::myers_diff,
-    hash::DftHashMap,
-    lines::is_all_whitespace,
-};
 
 /// A Debug implementation that does not recurse into the
 /// corresponding node mentioned for Unchanged. Otherwise we will
 /// infinitely loop on unchanged nodes, which both point to the other.
-impl<'a> fmt::Debug for ChangeKind<'a> {
+impl fmt::Debug for ChangeKind<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let desc = match self {
             Unchanged(node) => format!("Unchanged(ID: {})", node.id()),
@@ -47,6 +47,8 @@ impl<'a> fmt::Debug for ChangeKind<'a> {
 
 pub(crate) type SyntaxId = NonZeroU32;
 
+pub(crate) type ContentId = u32;
+
 /// Fields that are common to both `Syntax::List` and `Syntax::Atom`.
 pub(crate) struct SyntaxInfo<'a> {
     /// The previous node with the same parent as this one.
@@ -68,7 +70,7 @@ pub(crate) struct SyntaxInfo<'a> {
     /// diff, or nodes at different positions.
     ///
     /// Values are sequential, not hashes. Collisions never occur.
-    content_id: Cell<u32>,
+    content_id: Cell<ContentId>,
     /// Is this the only node with this content? Ignores nodes on the
     /// other side.
     content_is_unique: Cell<bool>,
@@ -90,7 +92,7 @@ impl<'a> SyntaxInfo<'a> {
     }
 }
 
-impl<'a> Default for SyntaxInfo<'a> {
+impl Default for SyntaxInfo<'_> {
     fn default() -> Self {
         Self::new()
     }
@@ -138,7 +140,7 @@ impl<'a> fmt::Debug for Syntax<'a> {
                 ..
             } => {
                 let mut ds = f.debug_struct(&format!(
-                    "List id:{} content:{}",
+                    "List id:{} content_id:{}",
                     self.id(),
                     self.content_id()
                 ));
@@ -168,7 +170,7 @@ impl<'a> fmt::Debug for Syntax<'a> {
                 ..
             } => {
                 let mut ds = f.debug_struct(&format!(
-                    "Atom id:{} content:{}",
+                    "Atom id:{} content_id:{}",
                     self.id(),
                     self.content_id()
                 ));
@@ -193,13 +195,13 @@ impl<'a> fmt::Debug for Syntax<'a> {
 
 impl<'a> Syntax<'a> {
     pub(crate) fn new_list(
-        arena: &'a Arena<Syntax<'a>>,
+        arena: &'a Arena<Self>,
         open_content: &str,
         open_position: Vec<SingleLineSpan>,
-        children: Vec<&'a Syntax<'a>>,
+        children: Vec<&'a Self>,
         close_content: &str,
         close_position: Vec<SingleLineSpan>,
-    ) -> &'a Syntax<'a> {
+    ) -> &'a Self {
         // Skip empty atoms: they aren't displayed, so there's no
         // point making our syntax tree bigger. These occur when we're
         // parsing incomplete or malformed programs.
@@ -246,26 +248,30 @@ impl<'a> Syntax<'a> {
     }
 
     pub(crate) fn new_atom(
-        arena: &'a Arena<Syntax<'a>>,
+        arena: &'a Arena<Self>,
         mut position: Vec<SingleLineSpan>,
-        mut content: &str,
+        mut content: String,
         kind: AtomKind,
-    ) -> &'a Syntax<'a> {
+    ) -> &'a Self {
         // If a parser hasn't cleaned up \r on CRLF files with
         // comments, discard it.
         if content.ends_with('\r') {
-            content = &content[..content.len() - 1];
+            content.pop();
         }
 
-        if kind == AtomKind::Comment && content.ends_with('\n') {
+        // If a parser adds a trailing newline to the atom, discard
+        // it. It produces worse diffs: we'd rather align on real
+        // content, and complicates handling of trailing newlines at
+        // the end of the file.
+        if content.ends_with('\n') {
             position.pop();
-            content = &content[..content.len() - 1];
+            content.pop();
         }
 
         arena.alloc(Atom {
             info: SyntaxInfo::default(),
             position,
-            content: content.into(),
+            content,
             kind,
         })
     }
@@ -276,11 +282,11 @@ impl<'a> Syntax<'a> {
         }
     }
 
-    pub(crate) fn parent(&self) -> Option<&'a Syntax<'a>> {
+    pub(crate) fn parent(&self) -> Option<&'a Self> {
         self.info().parent.get()
     }
 
-    pub(crate) fn next_sibling(&self) -> Option<&'a Syntax<'a>> {
+    pub(crate) fn next_sibling(&self) -> Option<&'a Self> {
         self.info().next_sibling.get()
     }
 
@@ -293,7 +299,7 @@ impl<'a> Syntax<'a> {
     /// A content ID of this syntax node. Two nodes have the same
     /// content ID if they have the same content, regardless of
     /// position.
-    pub(crate) fn content_id(&self) -> u32 {
+    pub(crate) fn content_id(&self) -> ContentId {
         self.info().content_id.get()
     }
 
@@ -364,6 +370,43 @@ pub(crate) fn init_all_info<'a>(lhs_roots: &[&'a Syntax<'a>], rhs_roots: &[&'a S
     init_next_prev(rhs_roots);
 }
 
+pub(crate) fn print_as_dot<'a>(roots: &[&'a Syntax<'a>]) {
+    println!("digraph {{");
+    print_as_dot_(roots);
+    println!("}}");
+}
+
+fn print_as_dot_<'a>(nodes: &[&'a Syntax<'a>]) {
+    for node in nodes {
+        let label = match node {
+            List {
+                open_content,
+                close_content,
+                ..
+            } => {
+                if open_content != "" {
+                    format!("[label=\"{open_content}{close_content}\"]")
+                } else {
+                    "[style=dotted]".to_owned()
+                }
+            }
+            Atom { content, .. } => {
+                let content = content.replace('\"', "\\\"");
+                format!("[label=\"{content}\"]")
+            }
+        };
+
+        println!("  id{} {};", node.id().get(), label);
+
+        if let List { children, .. } = node {
+            for child in children {
+                println!("  id{} -> id{};", node.id().get(), child.id().get());
+            }
+            print_as_dot_(children);
+        }
+    }
+}
+
 fn init_info<'a>(lhs_roots: &[&'a Syntax<'a>], rhs_roots: &[&'a Syntax<'a>]) {
     let mut id = NonZeroU32::new(1).unwrap();
     init_info_on_side(lhs_roots, &mut id);
@@ -408,13 +451,11 @@ fn set_content_id(nodes: &[&Syntax], existing: &mut DftHashMap<ContentKey, u32>)
                 ..
             } => {
                 let is_comment = *highlight == AtomKind::Comment;
-                let clean_content = if is_comment && content.lines().count() > 1 {
-                    content
-                        .lines()
+                let clean_content = if is_comment && split_on_newlines(content).count() > 1 {
+                    split_on_newlines(content)
                         .map(|l| l.trim_start())
                         .collect::<Vec<_>>()
                         .join("\n")
-                        .to_string()
                 } else {
                     content.clone()
                 };
@@ -467,7 +508,7 @@ fn set_unique_id(nodes: &[&Syntax], next_id: &mut SyntaxId) {
 }
 
 /// Assumes that `set_content_id` has already run.
-fn find_nodes_with_unique_content(nodes: &[&Syntax], counts: &mut DftHashMap<u32, usize>) {
+fn find_nodes_with_unique_content(nodes: &[&Syntax], counts: &mut DftHashMap<ContentId, usize>) {
     for node in nodes {
         *counts.entry(node.content_id()).or_insert(0) += 1;
         if let List { children, .. } = node {
@@ -476,7 +517,7 @@ fn find_nodes_with_unique_content(nodes: &[&Syntax], counts: &mut DftHashMap<u32
     }
 }
 
-fn set_content_is_unique_from_counts(nodes: &[&Syntax], counts: &DftHashMap<u32, usize>) {
+fn set_content_is_unique_from_counts(nodes: &[&Syntax], counts: &DftHashMap<ContentId, usize>) {
     for node in nodes {
         let count = counts
             .get(&node.content_id())
@@ -551,7 +592,7 @@ fn set_num_ancestors(nodes: &[&Syntax], num_ancestors: u32) {
     }
 }
 
-impl<'a> PartialEq for Syntax<'a> {
+impl PartialEq for Syntax<'_> {
     fn eq(&self, other: &Self) -> bool {
         debug_assert!(self.content_id() > 0);
         debug_assert!(other.content_id() > 0);
@@ -572,6 +613,9 @@ pub(crate) enum StringKind {
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Hash)]
 pub(crate) enum AtomKind {
+    /// The kind of this atom when we don't know anything else about
+    /// it. This is typically a variable, e.g. `foo`, or a literal
+    /// `123`. Note that string literals have a separate kind.
     Normal,
     // TODO: We should either have a AtomWithWords(HighlightKind) or a
     // separate String, Text and Comment kind.
@@ -599,15 +643,33 @@ pub(crate) enum MatchKind {
     },
     /// A novel token in an AST diff.
     Novel { highlight: TokenKind },
-    /// When doing a textual line-based diff, the part of a novel line
-    /// that exists on both sides.
-    NovelLinePart {
+    /// When we have a novel item, we often want to highlight novel
+    /// words more prominently. UnchangedPartOfNovelItem represents
+    /// the parts that don't get this special highlighting.
+    ///
+    /// For example, line-based diffs we want to highlight `a` and `b`
+    /// differently to `foo` here.
+    ///
+    /// foo a
+    /// foo b
+    ///
+    /// Whereas for syntactic diffs, we want to do the same thing for
+    /// strings and comments.
+    ///
+    /// "foo a"
+    /// "foo b"
+    ///
+    /// The whole string is a distinct value, but the `a` and `b` are
+    /// the most interesting parts.
+    UnchangedPartOfNovelItem {
         highlight: TokenKind,
         self_pos: SingleLineSpan,
         opposite_pos: Vec<SingleLineSpan>,
     },
-    /// When doing a textual line-based diff, the part of a novel line
-    /// that is actually novel. E.g. the newly added word on a line.
+    /// The novel part of the novel item. For line-based diffs, this
+    /// is the words that are unique to this line.
+    ///
+    /// See the discussion in `UnchangedPartOfNovelItem`.
     NovelWord { highlight: TokenKind },
     /// A syntactic token that was ignored by the AST diff (e.g. when
     /// ignoring comments for diffing).
@@ -618,7 +680,7 @@ impl MatchKind {
     pub(crate) fn is_novel(&self) -> bool {
         matches!(
             self,
-            MatchKind::Novel { .. } | MatchKind::NovelWord { .. } | MatchKind::NovelLinePart { .. }
+            Self::Novel { .. } | Self::NovelWord { .. } | Self::UnchangedPartOfNovelItem { .. }
         )
     }
 }
@@ -629,8 +691,8 @@ pub(crate) struct MatchedPos {
     pub(crate) pos: SingleLineSpan,
 }
 
-/// Given the text `content` from a comment or strings, split it into
-/// MatchedPos values for the novel and unchanged words.
+/// Given the text `content` from a comment or string, split it into
+/// `MatchedPos` values for the novel and unchanged words.
 ///
 /// If there is negligible text in common with `opposite_content`,
 /// treat the whole `content` as a single novel region.
@@ -648,7 +710,7 @@ fn split_atom_words(
     let content_parts = split_words_and_numbers(content);
     let other_parts = split_words_and_numbers(opposite_content);
 
-    let word_diffs = myers_diff::slice_by_hash(&content_parts, &other_parts);
+    let word_diffs = lcs_diff::slice_by_hash(&content_parts, &other_parts);
 
     if !has_common_words(&word_diffs) {
         return pos
@@ -671,7 +733,7 @@ fn split_atom_words(
     let mut mps = vec![];
     for diff_res in word_diffs {
         match diff_res {
-            myers_diff::DiffResult::Left(word) => {
+            lcs_diff::DiffResult::Left(word) => {
                 // This word is novel to this side.
                 if !is_all_whitespace(word) {
                     mps.push(MatchedPos {
@@ -688,7 +750,7 @@ fn split_atom_words(
                 }
                 offset += word.len();
             }
-            myers_diff::DiffResult::Both(word, opposite_word) => {
+            lcs_diff::DiffResult::Both(word, opposite_word) => {
                 // This word is present on both sides.
                 // TODO: don't assume this atom is on a single line.
                 let word_pos =
@@ -701,7 +763,7 @@ fn split_atom_words(
                 );
 
                 mps.push(MatchedPos {
-                    kind: MatchKind::NovelLinePart {
+                    kind: MatchKind::UnchangedPartOfNovelItem {
                         highlight: TokenKind::Atom(kind),
                         self_pos: word_pos,
                         opposite_pos: opposite_word_pos,
@@ -711,7 +773,7 @@ fn split_atom_words(
                 offset += word.len();
                 opposite_offset += opposite_word.len();
             }
-            myers_diff::DiffResult::Right(opposite_word) => {
+            lcs_diff::DiffResult::Right(opposite_word) => {
                 // Only exists on other side, nothing to do on this side.
                 opposite_offset += opposite_word.len();
             }
@@ -723,13 +785,13 @@ fn split_atom_words(
 
 /// Are there sufficient common words that we should only highlight
 /// individual changed words?
-fn has_common_words(word_diffs: &Vec<myers_diff::DiffResult<&&str>>) -> bool {
+fn has_common_words(word_diffs: &Vec<lcs_diff::DiffResult<&&str>>) -> bool {
     let mut novel_count = 0;
     let mut unchanged_count = 0;
 
     for word_diff in word_diffs {
         match word_diff {
-            myers_diff::DiffResult::Both(word, _) => {
+            lcs_diff::DiffResult::Both(word, _) => {
                 if **word != " " {
                     unchanged_count += 1;
                 }
@@ -876,7 +938,37 @@ pub(crate) fn change_positions<'a>(
     change_map: &ChangeMap<'a>,
 ) -> Vec<MatchedPos> {
     let mut positions = Vec::new();
-    change_positions_(nodes, change_map, &mut positions);
+    let mut seen_unchanged = false;
+
+    change_positions_(nodes, change_map, &mut positions, &mut seen_unchanged);
+
+    // If there are no unchanged items, insert a dummy item at the
+    // beginning of both files with a width of zero. This gives
+    // display something to use when aligning.
+    if !seen_unchanged {
+        let lhs_pos = SingleLineSpan {
+            line: 0.into(),
+            start_col: 0,
+            end_col: 0,
+        };
+        let rhs_pos = SingleLineSpan {
+            line: 0.into(),
+            start_col: 0,
+            end_col: 0,
+        };
+        positions.insert(
+            0,
+            MatchedPos {
+                kind: MatchKind::UnchangedToken {
+                    highlight: TokenKind::Atom(AtomKind::Normal),
+                    self_pos: vec![lhs_pos],
+                    opposite_pos: vec![rhs_pos],
+                },
+                pos: lhs_pos,
+            },
+        );
+    }
+
     positions
 }
 
@@ -884,11 +976,16 @@ fn change_positions_<'a>(
     nodes: &[&'a Syntax<'a>],
     change_map: &ChangeMap<'a>,
     positions: &mut Vec<MatchedPos>,
+    seen_unchanged: &mut bool,
 ) {
     for node in nodes {
         let change = change_map
             .get(node)
             .unwrap_or_else(|| panic!("Should have changes set in all nodes: {:#?}", node));
+
+        if matches!(change, ChangeKind::Unchanged(_)) {
+            *seen_unchanged = true;
+        }
 
         match node {
             List {
@@ -904,7 +1001,7 @@ fn change_positions_<'a>(
                     false,
                 ));
 
-                change_positions_(children, change_map, positions);
+                change_positions_(children, change_map, positions, seen_unchanged);
 
                 positions.extend(MatchedPos::new(
                     change,
@@ -989,8 +1086,8 @@ mod tests {
 
         let arena = Arena::new();
 
-        let comment = Syntax::new_atom(&arena, pos.clone(), "foo", AtomKind::Comment);
-        let atom = Syntax::new_atom(&arena, pos, "foo", AtomKind::Normal);
+        let comment = Syntax::new_atom(&arena, pos.clone(), "foo".to_owned(), AtomKind::Comment);
+        let atom = Syntax::new_atom(&arena, pos, "foo".to_owned(), AtomKind::Normal);
         init_all_info(&[comment], &[atom]);
 
         assert_ne!(comment, atom);
@@ -1002,7 +1099,7 @@ mod tests {
         let position = vec![];
         let content = "foo\r";
 
-        let atom = Syntax::new_atom(&arena, position, content, AtomKind::Comment);
+        let atom = Syntax::new_atom(&arena, position, content.to_owned(), AtomKind::Comment);
 
         match atom {
             List { .. } => unreachable!(),
@@ -1029,7 +1126,7 @@ mod tests {
         ];
         let content = ";; hello\n";
 
-        let atom = Syntax::new_atom(&arena, position, content, AtomKind::Comment);
+        let atom = Syntax::new_atom(&arena, position, content.to_owned(), AtomKind::Comment);
 
         match atom {
             List { .. } => unreachable!(),
@@ -1049,7 +1146,7 @@ mod tests {
         }
     }
 
-    /// Ignore the syntax highighting kind when comparing
+    /// Ignore the syntax highlighting kind when comparing
     /// atoms. Sometimes changing delimiter wrapping can change
     /// whether a parser thinks that a node is e.g. a type.
     #[test]
@@ -1062,8 +1159,8 @@ mod tests {
 
         let arena = Arena::new();
 
-        let type_atom = Syntax::new_atom(&arena, pos.clone(), "foo", AtomKind::Type);
-        let atom = Syntax::new_atom(&arena, pos, "foo", AtomKind::Normal);
+        let type_atom = Syntax::new_atom(&arena, pos.clone(), "foo".to_owned(), AtomKind::Type);
+        let atom = Syntax::new_atom(&arena, pos, "foo".to_owned(), AtomKind::Normal);
         init_all_info(&[type_atom], &[atom]);
 
         assert_eq!(type_atom, atom);
@@ -1078,7 +1175,7 @@ mod tests {
         }];
 
         let arena = Arena::new();
-        let atom = Syntax::new_atom(&arena, pos, "foo", AtomKind::Normal);
+        let atom = Syntax::new_atom(&arena, pos, "foo".to_owned(), AtomKind::Normal);
 
         let trivial_list = Syntax::new_list(&arena, "", vec![], vec![atom], "", vec![]);
 
@@ -1094,7 +1191,7 @@ mod tests {
         }];
 
         let arena = Arena::new();
-        let atom = Syntax::new_atom(&arena, pos, "", AtomKind::Normal);
+        let atom = Syntax::new_atom(&arena, pos, "".to_owned(), AtomKind::Normal);
 
         let trivial_list = Syntax::new_list(&arena, "(", vec![], vec![atom], ")", vec![]);
 
@@ -1116,8 +1213,13 @@ mod tests {
 
         let arena = Arena::new();
 
-        let x = Syntax::new_atom(&arena, pos.clone(), "foo\nbar", AtomKind::Comment);
-        let y = Syntax::new_atom(&arena, pos, "foo\n    bar", AtomKind::Comment);
+        let x = Syntax::new_atom(
+            &arena,
+            pos.clone(),
+            "foo\nbar".to_owned(),
+            AtomKind::Comment,
+        );
+        let y = Syntax::new_atom(&arena, pos, "foo\n    bar".to_owned(), AtomKind::Comment);
         init_all_info(&[x], &[y]);
 
         assert_eq!(x, y);
@@ -1150,7 +1252,7 @@ mod tests {
             res,
             vec![
                 MatchedPos {
-                    kind: MatchKind::NovelLinePart {
+                    kind: MatchKind::UnchangedPartOfNovelItem {
                         highlight: TokenKind::Atom(AtomKind::Comment),
                         self_pos: SingleLineSpan {
                             line: 0.into(),
@@ -1170,7 +1272,7 @@ mod tests {
                     }
                 },
                 MatchedPos {
-                    kind: MatchKind::NovelLinePart {
+                    kind: MatchKind::UnchangedPartOfNovelItem {
                         highlight: TokenKind::Atom(AtomKind::Comment),
                         self_pos: SingleLineSpan {
                             line: 0.into(),
@@ -1190,7 +1292,7 @@ mod tests {
                     }
                 },
                 MatchedPos {
-                    kind: MatchKind::NovelLinePart {
+                    kind: MatchKind::UnchangedPartOfNovelItem {
                         highlight: TokenKind::Atom(AtomKind::Comment),
                         self_pos: SingleLineSpan {
                             line: 0.into(),
@@ -1210,7 +1312,7 @@ mod tests {
                     }
                 },
                 MatchedPos {
-                    kind: MatchKind::NovelLinePart {
+                    kind: MatchKind::UnchangedPartOfNovelItem {
                         highlight: TokenKind::Atom(AtomKind::Comment),
                         self_pos: SingleLineSpan {
                             line: 0.into(),
@@ -1230,7 +1332,7 @@ mod tests {
                     }
                 },
                 MatchedPos {
-                    kind: MatchKind::NovelLinePart {
+                    kind: MatchKind::UnchangedPartOfNovelItem {
                         highlight: TokenKind::Atom(AtomKind::Comment),
                         self_pos: SingleLineSpan {
                             line: 0.into(),
