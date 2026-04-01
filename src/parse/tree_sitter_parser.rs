@@ -1262,6 +1262,9 @@ fn tree_highlights(
     let mut string_capture_ids = vec![];
     let mut type_capture_ids = vec![];
     let mut comment_capture_ids = vec![];
+    let mut function_capture_ids = vec![];
+    let mut variable_capture_ids = vec![];
+    let mut constant_capture_ids = vec![];
 
     // Query names are often written with namespacing, so
     // highlights.scm might contain @constant or the more specific
@@ -1284,16 +1287,19 @@ fn tree_highlights(
             type_capture_ids.push(idx as u32);
         } else if name == "keyword"
             || name.starts_with("keyword.")
-            || name == "constant"
-            || name.starts_with("constant.")
             || name == "operator"
             || name == "repeat"
             || name == "conditional"
-            || name == "boolean"
             || name == "exception"
             || name == "include"
         {
             keyword_ish_capture_ids.push(idx as u32);
+        } else if name == "constant"
+            || name.starts_with("constant.")
+            || name == "boolean"
+            || name == "number"
+        {
+            constant_capture_ids.push(idx as u32);
         }
 
         if name == "string"
@@ -1313,6 +1319,18 @@ fn tree_highlights(
         if name == "comment" || name.starts_with("comment.") {
             comment_capture_ids.push(idx as u32);
         }
+
+        if name == "function"
+            || name == "function.method"
+            || name == "function.macro"
+            || name == "function.spec"
+        {
+            function_capture_ids.push(idx as u32);
+        }
+
+        if name == "variable" {
+            variable_capture_ids.push(idx as u32);
+        }
     }
 
     let mut qc = ts::QueryCursor::new();
@@ -1322,6 +1340,9 @@ fn tree_highlights(
     let mut keyword_ids = DftHashSet::default();
     let mut string_ids = DftHashSet::default();
     let mut type_ids = DftHashSet::default();
+    let mut function_ids = DftHashSet::default();
+    let mut variable_ids = DftHashSet::default();
+    let mut constant_ids = DftHashSet::default();
 
     while let Some(m) = q_matches.next() {
         for c in m.captures {
@@ -1333,6 +1354,16 @@ fn tree_highlights(
                 string_ids.insert(c.node.id());
             } else if type_capture_ids.contains(&c.index) {
                 type_ids.insert(c.node.id());
+            } else if function_capture_ids.contains(&c.index) {
+                if is_declaration_context(&c.node) {
+                    function_ids.insert(c.node.id());
+                }
+            } else if variable_capture_ids.contains(&c.index) {
+                if is_declaration_context(&c.node) {
+                    variable_ids.insert(c.node.id());
+                }
+            } else if constant_capture_ids.contains(&c.index) {
+                constant_ids.insert(c.node.id());
             }
         }
     }
@@ -1342,7 +1373,59 @@ fn tree_highlights(
         keyword_ids,
         string_ids,
         type_ids,
+        function_ids,
+        variable_ids,
+        constant_ids,
     }
+}
+
+/// Check if a node is in a declaration context (not a usage/call).
+fn is_declaration_context(node: &ts::Node) -> bool {
+    if let Some(parent) = node.parent() {
+        let pk = parent.kind();
+
+        // Function/method declarations: the name child is a declaration.
+        if pk.contains("function_declaration")
+            || pk.contains("method_definition")
+            || pk.contains("generator_function_declaration")
+            || pk == "function_signature"
+            || pk == "abstract_method_signature"
+            || pk.contains("procedure_specification")
+            || pk.contains("function_specification")
+        {
+            return parent
+                .child_by_field_name("name")
+                .is_some_and(|n| n.id() == node.id());
+        }
+
+        // Variable declarations: the name child of a declarator is a declaration.
+        if pk == "variable_declarator"
+            || pk == "assignment_pattern"
+            || pk == "shorthand_property_identifier_pattern"
+        {
+            return parent
+                .child_by_field_name("name")
+                .is_some_and(|n| n.id() == node.id())
+                || parent
+                    .child_by_field_name("left")
+                    .is_some_and(|n| n.id() == node.id());
+        }
+
+        // Destructuring patterns in declarations
+        if pk == "array_pattern" || pk == "object_pattern" {
+            return is_declaration_context(&parent);
+        }
+
+        // Parameter declarations
+        if pk == "formal_parameters"
+            || pk == "required_parameter"
+            || pk == "optional_parameter"
+            || pk == "rest_pattern"
+        {
+            return true;
+        }
+    }
+    false
 }
 
 pub(crate) fn print_tree(src: &str, tree: &tree_sitter::Tree) {
@@ -1549,6 +1632,9 @@ pub(crate) struct HighlightedNodeIds {
     comment_ids: DftHashSet<usize>,
     string_ids: DftHashSet<usize>,
     type_ids: DftHashSet<usize>,
+    function_ids: DftHashSet<usize>,
+    variable_ids: DftHashSet<usize>,
+    constant_ids: DftHashSet<usize>,
 }
 
 /// Convert all the tree-sitter nodes at this level to difftastic
@@ -1845,6 +1931,12 @@ fn atom_from_cursor<'a>(
         AtomKind::String(StringKind::StringLiteral)
     } else if highlights.type_ids.contains(&node.id()) {
         AtomKind::Type
+    } else if highlights.function_ids.contains(&node.id()) {
+        AtomKind::Function
+    } else if highlights.variable_ids.contains(&node.id()) {
+        AtomKind::Variable
+    } else if highlights.constant_ids.contains(&node.id()) {
+        AtomKind::Constant
     } else if node.kind() == "CharData" || node.kind() == "text" {
         AtomKind::String(StringKind::Text)
     } else {

@@ -623,6 +623,9 @@ pub(crate) enum AtomKind {
     Type,
     Comment,
     Keyword,
+    Function,
+    Variable,
+    Constant,
     TreeSitterError,
 }
 

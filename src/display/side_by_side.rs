@@ -9,7 +9,7 @@ use crate::constants::Side;
 use crate::display::context::all_matched_lines_filled;
 use crate::display::hunks::{matched_lines_indexes_for_hunk, Hunk};
 use crate::display::style::{
-    self, apply_colors, apply_line_number_color, color_positions, replace_tabs,
+    self, apply_colors, apply_line_number_color, color_positions, paint_line_bg, replace_tabs,
     split_and_apply, width_respecting_tabs,
 };
 use crate::hash::{DftHashMap, DftHashSet};
@@ -640,9 +640,7 @@ pub(crate) fn print(
 
                         let rhs_line = if rhs_lines_with_novel.contains(rhs_line_num) {
                             // TODO: replace the argument to on_fixed with the color from the theme
-                            Paint::bg(&rhs_line, display_options.theme.novel_bg_right)
-                                .wrap()
-                                .to_string()
+                            paint_line_bg(&rhs_line, display_options.theme.novel_bg_right)
                         } else {
                             rhs_line.to_string()
                         };
@@ -671,9 +669,7 @@ pub(crate) fn print(
 
                         let lhs_line = if lhs_lines_with_novel.contains(lhs_line_num) {
                             // TODO: replace the argument to on_fixed with the color from the theme
-                            Paint::bg(&lhs_line, display_options.theme.novel_bg_left)
-                                .wrap()
-                                .to_string()
+                            paint_line_bg(&lhs_line, display_options.theme.novel_bg_left)
                         } else {
                             lhs_line.to_string()
                         };
@@ -771,20 +767,14 @@ pub(crate) fn print(
                         lhs_num,
                         match lhs_line_num {
                             Some(line_num) if lhs_lines_with_novel.contains(line_num) =>
-                            // TODO: replace the argument to on_fixed with the color from the theme
-                                Paint::bg(&lhs_line, display_options.theme.novel_bg_left)
-                                    .wrap()
-                                    .to_string(),
+                                paint_line_bg(&lhs_line, display_options.theme.novel_bg_left),
                             _ => lhs_line,
                         },
                         SPACER,
                         rhs_num,
                         match rhs_line_num {
                             Some(line_num) if rhs_lines_with_novel.contains(line_num) =>
-                            // TODO: replace the argument to on_fixed with the color from the theme
-                                Paint::bg(&rhs_line, display_options.theme.novel_bg_right)
-                                    .wrap()
-                                    .to_string(),
+                                paint_line_bg(&rhs_line, display_options.theme.novel_bg_right),
                             _ => rhs_line,
                         }
                     );

@@ -6,7 +6,7 @@ use crate::display::context::{
     calculate_after_context, calculate_before_context, opposite_positions,
 };
 use crate::display::hunks::Hunk;
-use crate::display::style::{self, apply_colors, apply_line_number_color};
+use crate::display::style::{self, apply_colors, apply_line_number_color, paint_line_bg};
 use crate::lines::{format_line_num, split_on_newlines, MaxLine};
 use crate::options::DisplayOptions;
 use crate::parse::syntax::MatchedPos;
@@ -121,12 +121,10 @@ pub(crate) fn print(
                     ),
                     // wrap bg color here
                     // TODO: might need to extend lines so background color shows up on right side
-                    Paint::bg(
+                    paint_line_bg(
                         &lhs_colored_lines[lhs_line.as_usize()],
                         display_options.theme.novel_bg_left
                     )
-                    .wrap()
-                    .to_string()
                 );
             }
         }
@@ -142,12 +140,10 @@ pub(crate) fn print(
                     ),
                     // wrap bg color here
                     // TODO: might need to extend lines so background color shows up on right side
-                    Paint::bg(
+                    paint_line_bg(
                         &rhs_colored_lines[rhs_line.as_usize()],
                         display_options.theme.novel_bg_right
                     )
-                    .wrap()
-                    .to_string()
                 );
             }
         }

@@ -9,7 +9,7 @@ use yansi::Style;
 
 use crate::{
     constants::Side, hash::DftHashMap, lines::{byte_len, split_on_newlines}, options::DisplayOptions,
-    parse::syntax::MatchedPos, summary::FileFormat,
+    parse::syntax::{MatchKind, MatchedPos}, summary::FileFormat,
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -168,16 +168,32 @@ pub(crate) fn split_and_apply(
     let mut styled_parts = vec![];
     let mut part_start = 0;
 
+    // For the first chunk of a source line, don't apply token-level
+    // backgrounds to leading whitespace (the line-level bg covers it).
+    // Wrapped continuation lines keep their styling.
+    let content_start = line
+        .bytes()
+        .position(|b| b != b' ' && b != b'\t')
+        .unwrap_or(0);
+
     for (line_part, pad) in split_string_by_width(line, max_len, tab_width) {
         let mut res = String::with_capacity(line_part.len() + pad);
         let mut prev_style_end = 0;
         for (span, style) in styles {
-            let start_col = span.start_col as usize;
+            let start_col = if part_start == 0 {
+                max(span.start_col as usize, content_start)
+            } else {
+                span.start_col as usize
+            };
             let end_col = span.end_col as usize;
 
-            // The remaining spans are beyond the end of this line_part.
-            if start_col >= part_start + byte_len(line_part) {
-                break;
+            // Skip spans that are entirely within leading whitespace,
+            // or beyond the end of this line_part.
+            if start_col >= end_col || start_col >= part_start + byte_len(line_part) {
+                if start_col >= part_start + byte_len(line_part) {
+                    break;
+                }
+                continue;
             }
 
             // If there's an unstyled gap before the next span.
@@ -196,7 +212,7 @@ pub(crate) fn split_and_apply(
             if end_col > part_start {
                 let span_s = substring_by_byte_replace_tabs(
                     line_part,
-                    max(0, span.start_col as isize - part_start as isize) as usize,
+                    max(0, start_col as isize - part_start as isize) as usize,
                     min(byte_len(line_part), end_col - part_start),
                     tab_width,
                 );
@@ -222,11 +238,7 @@ pub(crate) fn split_and_apply(
             res.push_str(span_s);
         }
 
-        match side {
-            Side::Left => res.push_str(&" ".repeat(pad)),
-            // TODO: replace the magic number 8 with the actual value, probably lineno length plus a gutter
-            Side::Right => res.push_str(&" ".repeat(pad - 8)),
-        }
+        res.push_str(&" ".repeat(pad));
 
         styled_parts.push(res);
         part_start += byte_len(line_part);
@@ -239,16 +251,23 @@ pub(crate) fn split_and_apply(
 /// specified.
 fn apply_line(line: &str, styles: &[(SingleLineSpan, Style)]) -> String {
     let line_bytes = byte_len(line);
+    // Don't apply background styles to leading whitespace — the
+    // line-level background (from Paint::bg wrapping) handles that.
+    let content_start = line
+        .bytes()
+        .position(|b| b != b' ' && b != b'\t')
+        .unwrap_or(0);
+
     let mut styled_line = String::with_capacity(line.len());
     let mut i = 0;
     for (span, style) in styles {
-        let start_col = span.start_col as usize;
+        let start_col = max(span.start_col as usize, content_start);
         let end_col = span.end_col as usize;
 
         // The remaining spans are beyond the end of this line. This
         // occurs when we truncate the line to fit on the display.
-        if start_col >= line_bytes {
-            break;
+        if start_col >= line_bytes || start_col >= end_col {
+            continue;
         }
 
         // Unstyled text before the next span.
@@ -355,9 +374,34 @@ pub(crate) fn color_positions(
     file_format: &FileFormat,
     mps: &[MatchedPos],
 ) -> Vec<(SingleLineSpan, Style)> {
+    // Find lines where every token is Novel (fully new/deleted lines).
+    // These should only get the line-level bg, not word-level bg.
+    let mut fully_novel_lines: DftHashMap<LineNumber, bool> = DftHashMap::default();
+    for mp in mps {
+        let dominated_by_novel = fully_novel_lines.entry(mp.pos.line).or_insert(true);
+        if !matches!(mp.kind, MatchKind::Novel { .. }) {
+            *dominated_by_novel = false;
+        }
+    }
+
     let mut styles = vec![];
     for mp in mps {
-        let style = *display_options.theme.style_by_type(&mp.kind, side);
+        let is_fully_novel_line = fully_novel_lines.get(&mp.pos.line).copied().unwrap_or(false);
+        let style = if is_fully_novel_line && matches!(mp.kind, MatchKind::Novel { .. }) {
+            // On a fully novel line, use the base foreground style (no word-level bg).
+            // The line-level bg from Paint::bg() already covers the whole line.
+            *display_options.theme.style_by_type(
+                &MatchKind::Ignored {
+                    highlight: match &mp.kind {
+                        MatchKind::Novel { highlight } => *highlight,
+                        _ => unreachable!(),
+                    },
+                },
+                side,
+            )
+        } else {
+            *display_options.theme.style_by_type(&mp.kind, side)
+        };
         styles.push((mp.pos, style));
     }
 
@@ -413,6 +457,20 @@ pub(crate) fn print_warning(s: &str, display_options: &DisplayOptions) {
 
     eprint!("{}", prefix);
     eprint!("{}\n\n", s);
+}
+
+/// Apply a line-level background color to an entire line.
+/// Strips any trailing newline before painting so the background
+/// doesn't bleed to the terminal edge.
+pub(crate) fn paint_line_bg(line: &str, bg: yansi::Color) -> String {
+    let has_newline = line.ends_with('\n');
+    let trimmed = line.trim_end_matches('\n');
+    let painted = Paint::bg(trimmed, bg).wrap().to_string();
+    if has_newline {
+        format!("{}\n", painted)
+    } else {
+        painted
+    }
 }
 
 /// Style `s` as an error and write to stderr.
