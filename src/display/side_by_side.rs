@@ -104,6 +104,11 @@ fn display_single_column(
         style = *display_options.theme.lineno_style(false, side);
     }
 
+    let line_bg = match side {
+        Side::Left => display_options.theme.novel_bg_left,
+        Side::Right => display_options.theme.novel_bg_right,
+    };
+
     for (i, line) in src_lines.iter().enumerate() {
         let mut formatted_line = String::with_capacity(line.len());
         formatted_line.push_str(
@@ -111,7 +116,11 @@ fn display_single_column(
                 .paint(style)
                 .to_string(),
         );
-        formatted_line.push_str(line);
+        if display_options.use_color {
+            formatted_line.push_str(&style::paint_line_bg(line, line_bg));
+        } else {
+            formatted_line.push_str(line);
+        }
         formatted_lines.push(formatted_line);
     }
 

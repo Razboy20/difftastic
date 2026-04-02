@@ -384,25 +384,63 @@ pub(crate) fn color_positions(
         }
     }
 
-    let mut styles = vec![];
+    // Get the word-level bg for filling gaps between novel tokens.
+    let word_bg = match side {
+        Side::Left => display_options.theme.novel_style_left.background,
+        Side::Right => display_options.theme.novel_style_right.background,
+    };
+
+    let mut styles: Vec<(SingleLineSpan, Style)> = vec![];
+    let mut is_novel: Vec<bool> = vec![];
+
     for mp in mps {
         let is_fully_novel_line = fully_novel_lines.get(&mp.pos.line).copied().unwrap_or(false);
+        let has_novel_bg = matches!(
+            mp.kind,
+            MatchKind::Novel { .. } | MatchKind::NovelWord { .. }
+        );
+
         let style = if is_fully_novel_line && matches!(mp.kind, MatchKind::Novel { .. }) {
-            // On a fully novel line, use the base foreground style (no word-level bg).
-            // The line-level bg from Paint::bg() already covers the whole line.
-            *display_options.theme.style_by_type(
-                &MatchKind::Ignored {
-                    highlight: match &mp.kind {
-                        MatchKind::Novel { highlight } => *highlight,
-                        _ => unreachable!(),
-                    },
-                },
-                side,
-            )
+            let novel_style = display_options.theme.style_by_type(&mp.kind, side);
+            match novel_style.foreground {
+                Some(fg) => Style::new().fg(fg),
+                None => Style::new(),
+            }
         } else {
             *display_options.theme.style_by_type(&mp.kind, side)
         };
+
         styles.push((mp.pos, style));
+        is_novel.push(has_novel_bg && !is_fully_novel_line);
+    }
+
+    // Fill whitespace gaps between adjacent novel tokens on the same line.
+    if let Some(bg) = word_bg {
+        let fill_style = Style::new().bg(bg);
+        let mut fills = vec![];
+
+        for i in 1..styles.len() {
+            let (prev_span, _) = &styles[i - 1];
+            let (curr_span, _) = &styles[i];
+
+            if prev_span.line == curr_span.line
+                && is_novel[i - 1]
+                && is_novel[i]
+                && prev_span.end_col < curr_span.start_col
+            {
+                fills.push((
+                    SingleLineSpan {
+                        line: prev_span.line,
+                        start_col: prev_span.end_col,
+                        end_col: curr_span.start_col,
+                    },
+                    fill_style,
+                ));
+            }
+        }
+
+        styles.extend(fills);
+        styles.sort_by_key(|(span, _)| (span.line, span.start_col));
     }
 
     merge_adjacent(&styles)
